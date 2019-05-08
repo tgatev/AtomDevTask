@@ -76,14 +76,11 @@ class BooksController extends Controller
     {
         $book = Books::find($id);
 
-        $absolute_path = storage_path('app/public/') . $book->image;
-        $image = Image::make($absolute_path)->resize(200, 300)->encode('data-url');
-
         return view('books.book_form', [
             "route" => route("uploadBook"),
             'book' => $book,
             'action' => 'Update',
-            'img' => $image
+            'img' => $book->getImgUrl()
             ]);
     }
 
@@ -96,7 +93,6 @@ class BooksController extends Controller
         $req_data = $request->all();
         $this->validator($req_data)->validate();
 
-        $Book = null ;
         if($req_data["id"]){
             $Book = Books::find($req_data["id"]);
         }else{
@@ -108,32 +104,26 @@ class BooksController extends Controller
         $Book->year = $request->input('year');
         $Book->Description = $request->input('Description');
 
-        $image_name = md5(time() . $request->input('name') . $request->input('ISBN') . $request->input('year') . $request->input('description'));
+        // File name of cover
+        $image_name = md5(implode("", [
+            time(),
+            $request->input('name'),
+            $request->input('ISBN'),
+            $request->input('year'),
+            $request->input('description')
+        ]));
 
         if (isset($request->file()["image"])) {
             $image_name .= "." . $request->file()["image"]->getClientOriginalExtension();
-            $request->file()["image"]->storeAs("", $image_name, 'public');
+            $request->file()["image"]->storeAs("image/", $image_name, 'public');
 
             $Book->image = $image_name;
         }
+
+        // store book
         $Book->save();
 
         return redirect()->route('showBooks');
-    }
-
-
-    public function change(Request $request)
-    {
-//        $this->validator($request->all())->validate();
-//        $user = User::find(Auth::user()->id);
-//
-//
-//        $user->first_name = $request->input('name');
-//        $user->last_name = $request->input('family');
-//        $user->email = $request->input('email');
-//        $user->save();
-//        Auth::setUser($user);
-//        return view('change_profile_data' , [array("changed" => 1 )] );
     }
 
     /**
@@ -142,7 +132,6 @@ class BooksController extends Controller
      */
     protected function validator($data)
     {
-        $rules = Books::getValidationRules($data["id"]?:null);
-        return Validator::make($data, $rules);
+        return Validator::make($data, Books::getValidationRules($data["id"]?:null) );
     }
 }

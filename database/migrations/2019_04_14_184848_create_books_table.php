@@ -14,13 +14,13 @@ class CreateBooksTable extends Migration
     public function up()
     {
         Schema::create('books', function (Blueprint $table) {
-            $table->bigIncrements('id');
+            $table->bigIncrements('id')->primary();
             $table->string('name', 100);
             $table->string('ISBN' , 20)->unique();
-//            $table->year('year');
             $table->string('year', 4); // there is books wrote before 1900 year
             $table->string('Description', 500 )->nullable();
             $table->string('image', 100 )->unique();
+            $table->unsignedBigInteger('owner_id');
             $table->timestamps();
         });
     }

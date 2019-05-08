@@ -23,11 +23,8 @@ class LibrariesGrid extends Grid implements LibrariesGridInterface
      * @var array
      */
     protected $buttonsToGenerate = [
-//        'create',
-//        'view',
-        'delete',
-//        'refresh',
-//        'export'
+        'view',
+        'delete'
     ];
 
     /**
@@ -46,43 +43,41 @@ class LibrariesGrid extends Grid implements LibrariesGridInterface
     public function setColumns()
     {
         $this->columns = [
-//		    "id" => [
-//		        "label" => "ID",
-//		        "filter" => [
-//		            "enabled" => true,
-//		            "operator" => "="
-//		        ],
-//		        "styles" => [
-//		            "column" => "grid-w-10"
-//		        ]
-//		    ],
-//		    "user_id" => [
-//		        "filter" => [
-//		            "enabled" => true,
-//		            "type" => "select",
-//		            "data" => [
-//
-//		            ]
-//		        ],
-//		        "export" => false
-//		    ],
-		    "book_id" => [
-		        "filter" => [
-		            "enabled" => true,
-		            "type" => "select",
-		            "data" => [
-
-		            ]
-		        ],
+            "cover" => [
+                "filter" => [
+                    "enabled" => false
+                ],
                 "raw" => true,
                 "data" => function($columnData, $columnName) {
                     // do whatever you want to display the data for the `name` column
-                    $book = Books::find($columnData->{$columnName});
-                    return  view('library.book_name', ['book_id' =>$columnData->{$columnName}, "book_name" => $book->name ]);
+                    $book = Books::find($columnData->book_id);
+
+                    return view("layouts.img", [
+                        "href" => $book->getImgUrl(),
+                        "bookViewHref" => route('viewBook', ["book" =>$book->id]),
+                    ]);
                 },
-		        "export" => false
+                "export" => false
+            ],
+		    "book_name" => [
+                "label" => "Book Name",
+                "raw" => true,
+                "data" => function($columnData, $columnName) {
+                    $book = Books::find($columnData->book_id);
+                    return  view('library.book_name', [
+                        'route' =>route('viewBook', ["book" =>$book->id]),
+                        "book_name" => $book->name ]
+                    );
+                },
+                "filter" => [
+                    "enabled" => true,
+                    "type" => "date",
+                    "operator" => "<="
+                ],
+		        "export" => true
 		    ],
 		    "created_at" => [
+		        "label" => "Registered",
 		        "sort" => false,
 		        "date" => "true",
 		        "filter" => [
@@ -106,8 +101,8 @@ class LibrariesGrid extends Grid implements LibrariesGridInterface
 
         // crud support
         $this->setCreateRouteName('addTolLibrary');
-//        $this->setViewRouteName('libraries.show');
         $this->setDeleteRouteName('removeFromLibrary');
+        $this->setViewRouteName('viewBook');
 
         // default route parameter
         $this->setDefaultRouteParameter('id');
@@ -139,9 +134,17 @@ class LibrariesGrid extends Grid implements LibrariesGridInterface
         // call `editToolbarButton` to edit a toolbar button
         // call `editRowButton` to edit a row button
         // call `editButtonProperties` to do either of the above. All the edit functions accept the properties as an array
+
         $this->editRowButton('delete', [
             'name' => 'Remove From Collection',
             'title' => 'Remove From Collection',
+        ]);
+        $this->editRowButton('view', [
+            'name' => 'See the Book Review',
+            'title' => 'See the Book Review',
+            'url' => function($gridName, $gridItem) {
+                return route('viewBook', ["book" => $gridItem->book_id]);
+            },
         ]);
     }
 

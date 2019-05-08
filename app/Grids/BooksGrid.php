@@ -7,6 +7,7 @@ use Leantony\Grid\Grid;
 use Leantony\Grid\Buttons\GenericButton;
 use Illuminate\Support\Facades\Storage;
 use Intervention\Image\Facades\Image;
+use App\Books;
 
 class BooksGrid extends Grid implements BooksGridInterface
 {
@@ -60,14 +61,7 @@ class BooksGrid extends Grid implements BooksGridInterface
             "image" => [
                 "raw" => true,
                 "data" => function ($columnData, $columnName) {
-                    // like for instance, displaying an image on the grid...
-                    if(Storage::disk('public')->exists($columnData->{$columnName})){
-                        $absolute_path = Storage::disk('public')->path($columnData->{$columnName});
-                        $image = Image::make($absolute_path)->resize(50, 75)->encode('data-url'); // ,
-                        return  '<img src="'.$image->encoded.'"/>';
-                    }else{
-                        return  '<img src="#"/>';
-                    }
+                    return  '<img src="'.Books::find($columnData->id)->getImgUrl().'"/>';
                 },
             ],
 		    "name" => [

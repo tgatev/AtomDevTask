@@ -3,7 +3,10 @@
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
+use Intervention\Image\Facades\Image;
+
 
 class Books extends Model
 {
@@ -28,10 +31,21 @@ class Books extends Model
     ];
 
     /**
+     * The attributes that should be hidden from arrays and json formats.
+     *
+     * @var array
+     */
+
+    protected $hidden = [
+        "id","owner_id"
+    ];
+
+    /**
      * The validation rules related to the table
      *
      * @return array
      */
+
     public static function getValidationRules( $exclude_id = null )
     {
         return [
@@ -46,12 +60,25 @@ class Books extends Model
             'image' => [
                 $exclude_id == null ?  'required': null ,
                 'image','mimes:jpeg,png,jpg,gif,svg','max:2048'
-                /* not need in case of code paths
-                , $exclude_id ?
-                    Rule::unique('books', 'ISBM')->ignore($exclude_id) :
-                    Rule::unique('books', 'ISBN')
-                */
             ],
         ];
     }
+
+    /**
+     * Generate img:data url
+     *
+     * @return string
+     */
+    public function getImgUrl(){
+
+        if(Storage::disk('public')->exists($this->image)){
+            $absolute_path = Storage::disk('public')->path($this->image );
+            $image = Image::make($absolute_path)->resize(50, 75)->encode('data-url'); // ,
+            return  $image->encoded;
+        }else{
+            return  "#";
+        }
+
+    }
+
 }

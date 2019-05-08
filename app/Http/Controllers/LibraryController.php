@@ -22,7 +22,11 @@ class LibraryController extends Controller
      */
     public function index(LibrariesGridInterface $LibrariesGrid, Request $request)
     {
-        return $LibrariesGrid->create(['query' => Library::where('user_id', Auth::user()->id), 'request' => $request])->renderOn('books.books_list'); // render the grid on the welcome view
+
+        return $LibrariesGrid->create([
+            'query' => Library::where('user_id', Auth::user()->id),
+            'request' => $request ]
+        )->renderOn('books.books_list'); // render the grid on the welcome view
     }
 
     /**
@@ -43,7 +47,7 @@ class LibraryController extends Controller
      */
     public function store(Request $request )
     {
-        //
+        // get User Library Data
         $item = new Library();
         $item->user_id = Auth::user()->id;
         $item->book_id = $request->get('id');
